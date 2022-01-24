@@ -22,6 +22,7 @@ async function run() {
         await client.connect();
         const database = client.db('groceryShop');
         const foodCollection = database.collection('foods');
+        const reviewCollection = database.collection('reviews');
 
         // get all food
         app.get('/foods', async (req, res) => {
@@ -34,7 +35,15 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             res.send(await foodCollection.findOne(query));
-        })
+        });
+
+        // get review api
+        app.get('/reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { foodId: id };
+            const review = await reviewCollection.find(query).toArray();
+            res.send(review);
+        });
 
     }
 
