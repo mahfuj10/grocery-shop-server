@@ -37,6 +37,13 @@ async function run() {
             res.send(await foodCollection.findOne(query));
         });
 
+        // get food api by category
+        app.get('/foods/:category', async (req, res) => {
+            const category = req.params.category;
+            const query = { category: category };
+            res.send(await foodCollection.find(query).toArray());
+        })
+
         // get review api
         app.get('/reviews/:id', async (req, res) => {
             const id = req.params.id;
@@ -50,6 +57,7 @@ async function run() {
             const userReivew = req.body;
             res.send(await reviewCollection.insertOne(userReivew));
         });
+
 
     }
 
