@@ -23,6 +23,7 @@ async function run() {
         const database = client.db('groceryShop');
         const foodCollection = database.collection('foods');
         const reviewCollection = database.collection('reviews');
+        const cartCollection = database.collection('cart-products');
 
         // get all food
         app.get('/foods', async (req, res) => {
@@ -52,12 +53,27 @@ async function run() {
             res.send(review);
         });
 
+        app.get('/reviews', async (req, res) => {
+            const review = await reviewCollection.find({}).toArray();
+            res.send(review);
+        });
+
         // post review
         app.post('/review', async (req, res) => {
             const userReivew = req.body;
             res.send(await reviewCollection.insertOne(userReivew));
         });
 
+        // add to cart
+        app.post('/addToCart', async (req, res) => {
+            const product = req.body;
+            res.send(await cartCollection.insertOne(product.food));
+        });
+
+        // get user cart product api
+        app.get('myCartProducts', async (req, res) => {
+
+        })
 
     }
 
