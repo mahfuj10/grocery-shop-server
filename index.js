@@ -75,9 +75,11 @@ async function run() {
         });
 
         // get user cart product api
-        app.get('myCartProducts', async (req, res) => {
-
-        })
+        app.get('/myCartProducts/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            res.send(await cartCollection.find(query).toArray());
+        });
 
     }
 
