@@ -34,8 +34,11 @@ async function run() {
         // get single api
         app.get('/food/:id', async (req, res) => {
             const id = req.params.id;
+            const options = {
+                projection: { _id: 0 },
+            };
             const query = { _id: ObjectId(id) };
-            res.send(await foodCollection.findOne(query));
+            res.send(await foodCollection.findOne(query, options));
         });
 
         // get food api by category
@@ -53,6 +56,7 @@ async function run() {
             res.send(review);
         });
 
+        // get review api
         app.get('/reviews', async (req, res) => {
             const review = await reviewCollection.find({}).toArray();
             res.send(review);
