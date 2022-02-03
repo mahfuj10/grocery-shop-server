@@ -81,6 +81,12 @@ async function run() {
             res.send(await cartCollection.find(query).toArray());
         });
 
+        // delete cart item
+        app.delete('/deleteCartProduct/:productId', async (req, res) => {
+            const id = req.params.productId;
+            const query = { _id: ObjectId(id) };
+            res.send(await cartCollection.deleteOne(query));
+        });
     }
 
     finally { }
