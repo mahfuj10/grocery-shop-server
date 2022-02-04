@@ -47,6 +47,12 @@ async function run() {
             const query = { category: category };
             res.send(await foodCollection.find(query).toArray());
         })
+        // get food api by origin
+        app.get('/products/:origin', async (req, res) => {
+            const origin = req.params.origin;
+            const query = { origin: origin };
+            res.send(await foodCollection.find(query).toArray());
+        })
 
         // get review api
         app.get('/reviews/:id', async (req, res) => {
