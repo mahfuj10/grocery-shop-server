@@ -30,6 +30,11 @@ async function run() {
             const foods = await foodCollection.find({}).toArray();
             res.send(foods);
         })
+        //post food
+        app.get('/addproduct', async (req, res) => {
+            const foods = await foodCollection.insertOne(req.body);
+            res.send(foods);
+        })
 
         // get single api
         app.get('/food/:id', async (req, res) => {
@@ -55,8 +60,9 @@ async function run() {
         })
 
         // get review api
-        app.get('/reviews/:id', async (req, res) => {
+        app.get('/productReviews/:id', async (req, res) => {
             const id = req.params.id;
+            console.log(id)
             const query = { foodId: id };
             const review = await reviewCollection.find(query).toArray();
             res.send(review);
@@ -77,7 +83,7 @@ async function run() {
         // add to cart
         app.post('/addToCart', async (req, res) => {
             const product = req.body;
-            res.send(await cartCollection.insertOne(product.food));
+            res.send(await cartCollection.insertOne(product));
         });
 
         // get user cart product api
