@@ -1,11 +1,12 @@
 const { MongoClient } = require('mongodb');
 const express = require('express');
-const port = process.env.port || 5000;
 const ObjectId = require('mongodb').ObjectId;
 const app = express();
+const stripe = require('stripe')('sk_test_51K93ltBcGooWtax9GkAGLr4DEmlZNpm6tUa0SLImClKgGZFpYehHv9XhvOAf5escrbFzko1UJ1bbecG02hdCCZZu00K0yXRB8H');
 const cors = require('cors');
-require('dotenv').config();
+const port = process.env.port || 5000;
 
+require('dotenv').config();
 app.use(cors());
 app.use(express.json());
 
@@ -24,6 +25,7 @@ async function run() {
         const foodCollection = database.collection('foods');
         const reviewCollection = database.collection('reviews');
         const cartCollection = database.collection('cart-products');
+        const ordersCollection = database.collection('orders');
 
         // get all food
         app.get('/foods', async (req, res) => {
@@ -99,6 +101,93 @@ async function run() {
             const query = { _id: ObjectId(id) };
             res.send(await cartCollection.deleteOne(query));
         });
+
+        // stripe payment gatway
+        app.post('/getclientsecretid', async (req, res) => {
+            const paymentInfo = req.body;
+            const amount = paymentInfo.price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: 'usd',
+                amount: amount,
+                payment_method_types: ['card']
+            });
+            res.json({ clientSecret: paymentIntent.client_secret })
+        });
+
+        // store my order data
+        app.post('/storeOrders', async (req, res) => {
+            console.log(req.body)
+            res.send(await ordersCollection.insertMany(req.body));
+        });
+
+        // get order all data
+        app.get('/orders', async (req, res) => {
+            res.send(await ordersCollection.find({}).toArray());
+        })
+
+        // get my order data
+        app.get('/orders', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            res.send(await ordersCollection.find(query).toArray());
+        })
+
+        // delete products from cart collection
+        app.delete('/deletecartproducts', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            res.send(await cartCollection.deleteMany(query));
+        });
+
+        // add review 
+        app.post('/addproductreivew', async (req, res) => {
+            const id = req?.query?.foodId;
+            const query = { _id: ObjectId(id) };
+            const postReview = await foodCollection.updateOne(query, { $push: { 'reviews': req.body } });
+            res.send(postReview);
+        });
+
+        // get user reivew on product
+        app.get('/userReview/:uid', async (req, res) => {
+            const uid = req.params.uid;
+            const query = { 'reviews.uid': uid };
+            res.send(await foodCollection.findOne(query));
+        });
+
+        // update name in the review
+        app.put('/updateName', async (req, res) => {
+            const uid = req.query.uid;
+            const name = req.body.updatedName;
+            const message = req.body.updatedMessage;
+            const rating = req.body.updatedRating;
+            const query = { 'reviews.uid': uid };
+            res.send(await foodCollection.updateOne(query, { $set: { 'reviews.$': { name: name, description: message, rating: rating, uid: uid } } }));
+            // res.status(200)
+        });
+
+        // delete product review
+        app.delete('/deleteReview', async (req, res) => {
+            const uid = req.query.uid;
+            const query = { 'reviews.uid': uid };
+            res.send(await foodCollection.updateOne(query, { '$pull': { 'reviews': { uid: uid } } }))
+        });
+
+        // approvde testimonial 
+        app.put('/approvetestimonial', async (req, res) => {
+            const query = { _id: ObjectId(req.query.id) };
+            const updateDoc = {
+                $set: { status: 'approve' }
+            };
+            res.send(await reviewCollection.updateOne(query, updateDoc))
+        });
+
+        // delete testimonial 
+        app.delete('/deletetestimonial', async (req, res) => {
+            const id = req.query.id;
+            const query = { _id: ObjectId(id) };
+            res.send(await reviewCollection.deleteOne(query));
+        });
+
     }
 
     finally { }
