@@ -25,6 +25,7 @@ async function run() {
         const foodCollection = database.collection('foods');
         const reviewCollection = database.collection('reviews');
         const cartCollection = database.collection('cart-products');
+        const usersCollection = database.collection('users');
         const ordersCollection = database.collection('orders');
 
         // get all food
@@ -186,6 +187,129 @@ async function run() {
             const id = req.query.id;
             const query = { _id: ObjectId(id) };
             res.send(await reviewCollection.deleteOne(query));
+        });
+
+        // add product 
+        app.post('/addproduct', async (req, res) => {
+            res.send(await foodCollection.insertOne(req.body));
+        });
+
+        // delete product 
+        app.delete('/deleteproduct', async (req, res) => {
+            const id = req.query.id;
+            const query = { _id: ObjectId(id) };
+            res.send(await foodCollection.deleteOne(query));
+        });
+
+        // update product name
+        app.put('/updateproductname', async (req, res) => {
+            const id = req.query.id;
+            const query = { _id: ObjectId(id) };
+            const updateDoc = { $set: { name: req.body.name } };
+            res.send(await foodCollection.updateOne(query, updateDoc));
+        });
+
+        // update product category
+        app.put('/updateproductcategory', async (req, res) => {
+            res.send(await foodCollection.updateOne({ _id: ObjectId(req.query.id) }, { $set: { category: req.body.category } }));
+        });
+
+        // update product price
+        app.put('/updateproductprice', async (req, res) => {
+            res.send(await foodCollection.updateOne({ _id: ObjectId(req.query.id) }, { $set: { price: req.body.price } }));
+        });
+
+        // saver user
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        });
+
+        // save user google sign
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        });
+
+        // get all user
+        app.get('/users', async (req, res) => {
+            res.send(await usersCollection.find({}).toArray());
+        });
+
+        // get user
+        app.get('/myprofile', async (req, res) => {
+            const uid = req.query.uid;
+            const query = { userId: uid };
+            res.send(await usersCollection.findOne(query));
+        });
+
+        // set user phone number
+        app.put('/setusernumber', async (req, res) => {
+            const uid = req.query.uid;
+            const query = { userId: uid };
+            const updateDoc = { $set: { number: req.body.number } };
+            res.send(await usersCollection.updateOne(query, updateDoc));
+        });
+
+        // set user address
+        app.put('/setuseraddress', async (req, res) => {
+            const uid = req.query.uid;
+            const query = { userId: uid };
+            const updateDoc = { $set: { address: req.body.address } };
+            res.send(await usersCollection.updateOne(query, updateDoc));
+        });
+
+        // update user name
+        app.put('/updateusername', async (req, res) => {
+            const uid = req.query.uid;
+            const query = { userId: uid };
+            const updateDoc = { $set: { name: req.body.name } };
+            res.send(await usersCollection.updateOne(query, updateDoc));
+        });
+
+        // update user image
+        app.put('/updateuserimage', async (req, res) => {
+            const uid = req.query.uid;
+            const query = { userId: uid };
+            console.log(req.body.logo);
+            const updateDoc = { $set: { image: req.body.logo } };
+            res.send(await usersCollection.updateOne(query, updateDoc));
+        });
+
+        // set admin role
+        app.put('/makeadmin', async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' }
+            };
+            res.send(await usersCollection.updateOne(filter, updateDoc));
+        });
+
+        // remove admin role 
+        app.put('/removeadminrole', async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'user' }
+            };
+            res.send(await usersCollection.updateOne(filter, updateDoc));
+        });
+
+        // update order status 
+        app.put('/updatestatus', async (req, res) => {
+            const id = req.query.id;
+            console.log(req.body, id);
+            const filter = { _id: id };
+            const updateDoc = {
+                $set: { status: req.body.status }
+            };
+            res.send(await ordersCollection.updateOne(filter, updateDoc));
         });
 
     }
